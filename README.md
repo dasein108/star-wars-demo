@@ -1,6 +1,6 @@
 # Star Wars Character Explorer Demo
 
-**Live Demo**: `https://dasein108.github.io/star-wars-demo/`
+**Live Demo**: https://dasein108.github.io/star-wars-demo/
 
 
 A modern web application for browsing and exploring Star Wars characters using the SWAPI (Star Wars API). Features responsive design, offline character editing, and a sleek dark theme.
