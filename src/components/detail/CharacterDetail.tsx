@@ -5,7 +5,6 @@ import {
   Typography,
   Box,
   Chip,
-  Skeleton,
 } from '@mui/material';
 import {
   Edit as EditIcon,
