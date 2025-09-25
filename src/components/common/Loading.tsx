@@ -101,6 +101,7 @@ export const CharacterCardSkeleton: React.FC = () => {
         layouts.fullHeightFlex,
         {
           minHeight: { xs: 200, sm: 220 },
+          width: { xs: 200, sm: 220 },
           maxWidth: { xs: '100%', sm: 280 },
           mx: { xs: spacing.none, sm: 'auto' },
         }
