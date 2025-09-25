@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Container,
   Typography,
@@ -20,89 +22,148 @@ import DetailPageHeader from '../components/detail/DetailPageHeader';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import { Character } from '../types/generated/swapi';
 import { spacing } from '../theme/theme';
+import { characterEditSchema, CharacterEditFormData } from '../utils/characterValidationSchema';
+import { useToast } from '../components/common/Toast';
 
 const DetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
   
   const {
     character,
     loading,
     error,
     isEditMode,
-    editData,
-    isDirty,
     isLocallyModified,
     lastModified,
     actions: {
       toggleEditMode,
-      updateEditData,
-      saveChanges,
-      cancelEdit,
+      saveCharacter,
       resetToApiData,
       retryLoad,
     },
   } = useCharacterDetail(id);
 
+  const form = useForm<CharacterEditFormData>({
+    resolver: zodResolver(characterEditSchema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      height: '',
+      mass: '',
+      gender: '',
+      birth_year: '',
+      hair_color: '',
+      skin_color: '',
+      eye_color: '',
+    },
+  });
+
+  useEffect(() => {
+    if (character && isEditMode) {
+      form.reset({
+        name: character.name || '',
+        height: character.height || '',
+        mass: character.mass || '',
+        gender: character.gender || '',
+        birth_year: character.birth_year || '',
+        hair_color: character.hair_color || '',
+        skin_color: character.skin_color || '',
+        eye_color: character.eye_color || '',
+      });
+    }
+  }, [character, isEditMode, form]);
+
   const handleGoBack = () => {
-    if (isDirty) {
+    if (form.formState.isDirty) {
       const confirmLeave = window.confirm(
         'You have unsaved changes. Are you sure you want to leave this page?'
       );
-      if (!confirmLeave) return;
+      if (!confirmLeave) {
+        showWarning('Please save or cancel your changes before leaving.');
+        return;
+      }
     }
     navigate(-1);
   };
 
   const handleGoHome = () => {
-    if (isDirty) {
+    if (form.formState.isDirty) {
       const confirmLeave = window.confirm(
         'You have unsaved changes. Are you sure you want to leave this page?'
       );
-      if (!confirmLeave) return;
+      if (!confirmLeave) {
+        showWarning('Please save or cancel your changes before leaving.');
+        return;
+      }
     }
     navigate('/');
   };
 
-  // Validation helper
-  const validateEditData = (data: Partial<Character>) => {
-    const errors: Record<string, string> = {};
-    
-    if (!data.name?.trim()) {
-      errors.name = 'Name is required';
-    }
-    
-    if (data.height && data.height !== 'unknown' && data.height.trim()) {
-      const height = parseInt(data.height, 10);
-      if (isNaN(height)) {
-        errors.height = 'Height must be a number';
-      }
-    }
-    
-    if (data.mass && data.mass !== 'unknown' && data.mass.trim()) {
-      const mass = parseInt(data.mass, 10);
-      if (isNaN(mass)) {
-        errors.mass = 'Mass must be a number';
-      }
-    }
-    
-    return errors;
-  };
-
   // Handle save with validation
   const handleSave = async () => {
-    const errors = validateEditData(editData);
-    if (Object.keys(errors).length > 0) {
-      alert('Please fix the validation errors before saving.');
+    const isValid = await form.trigger();
+    if (!isValid) {
+      const errors = form.formState.errors;
+      const errorMessages = Object.entries(errors)
+        .map(([field, error]) => `${field}: ${error?.message}`)
+        .join(', ');
+      showError(`Please fix validation errors: ${errorMessages}`);
       return;
     }
     
     try {
-      await saveChanges();
+      const formData = form.getValues();
+      await saveCharacter(formData);
+      form.reset(formData); // Reset form to mark as not dirty
+      showSuccess('Character changes saved successfully!');
     } catch (err) {
       console.error('Failed to save:', err);
-      alert('Failed to save changes. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes. Please try again.';
+      showError(errorMessage);
     }
+  };
+
+  // Handle reset to API data with toast
+  const handleResetToApiData = async () => {
+    try {
+      await resetToApiData();
+      showSuccess('Character data reset to original API values.');
+    } catch (err) {
+      console.error('Failed to reset:', err);
+      showError('Failed to reset character data. Please try again.');
+    }
+  };
+
+  // Handle cancel edit with toast
+  const handleCancelEdit = () => {
+    const hadChanges = form.formState.isDirty;
+    toggleEditMode();
+    if (character) {
+      form.reset({
+        name: character.name || '',
+        height: character.height || '',
+        mass: character.mass || '',
+        gender: character.gender || '',
+        birth_year: character.birth_year || '',
+        hair_color: character.hair_color || '',
+        skin_color: character.skin_color || '',
+        eye_color: character.eye_color || '',
+      });
+    }
+    if (hadChanges) {
+      showInfo('Changes cancelled. All unsaved modifications have been reverted.');
+    }
+  };
+
+  // Handle field updates with form validation
+  const handleUpdateField = (field: keyof Character, value: string) => {
+    form.setValue(field as keyof CharacterEditFormData, value, { 
+      shouldValidate: true,
+      shouldTouch: true,
+      shouldDirty: true
+    });
   };
 
   // Handle invalid character ID
@@ -238,14 +299,14 @@ const DetailPage: React.FC = () => {
           loading={loading}
           character={character}
           isEditMode={isEditMode}
-          isDirty={isDirty}
+          isDirty={form.formState.isDirty}
           isLocallyModified={isLocallyModified}
           lastModified={lastModified}
           onGoBack={handleGoBack}
           onToggleEditMode={toggleEditMode}
           onSave={handleSave}
-          onCancelEdit={cancelEdit}
-          onResetToApiData={resetToApiData}
+          onCancelEdit={handleCancelEdit}
+          onResetToApiData={handleResetToApiData}
         />
 
         {/* Character Detail */}
@@ -253,11 +314,11 @@ const DetailPage: React.FC = () => {
           character={character}
           loading={loading}
           isEditMode={isEditMode}
-          editData={editData}
-          isDirty={isDirty}
+          isDirty={form.formState.isDirty}
           isLocallyModified={isLocallyModified}
-          lastModified={lastModified}
-          onUpdateField={updateEditData}
+          onUpdateField={handleUpdateField}
+          formErrors={form.formState.errors}
+          formValues={form.watch()}
         />
       </Container>
     </ErrorBoundary>

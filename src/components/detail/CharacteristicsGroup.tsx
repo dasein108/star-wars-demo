@@ -3,27 +3,27 @@ import { Box, Typography } from '@mui/material';
 import { Character } from '../../types/generated/swapi';
 import CharacterCharacteristic from '../common/CharacterCharacteristic';
 import { spacing } from '../../theme/theme';
+import { CharacterFieldKey } from '../../config/characterFields';
+import { FieldErrors } from 'react-hook-form';
+import { CharacterEditFormData } from '../../utils/characterValidationSchema';
 
 interface CharacteristicsGroupProps {
   title: string;
-  characteristics: Array<{
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-    field?: keyof Character;
-    inputType?: 'text' | 'select' | 'number';
-    suffix?: string;
-    options?: Array<{value: string, label: string}>;
-    validation?: (value: string) => string | null;
-  }>;
+  fields: CharacterFieldKey[];
+  character: Character;
   isEditMode?: boolean;
+  formValues?: Partial<CharacterEditFormData>;
+  formErrors?: FieldErrors<CharacterEditFormData>;
   onUpdate?: (field: keyof Character, value: string) => void;
 }
 
 const CharacteristicsGroup: React.FC<CharacteristicsGroupProps> = ({
   title,
-  characteristics,
+  fields,
+  character,
   isEditMode = false,
+  formValues = {},
+  formErrors = {},
   onUpdate,
 }) => {
   return (
@@ -32,20 +32,15 @@ const CharacteristicsGroup: React.FC<CharacteristicsGroupProps> = ({
         {title}
       </Typography>
       
-      {characteristics.map((characteristic, index) => (
+      {fields.map((fieldKey) => (
         <CharacterCharacteristic
-          key={`${characteristic.field || index}`}
-          icon={characteristic.icon}
-          label={characteristic.label}
-          value={characteristic.value}
-          field={characteristic.field}
-          isEditable={!!characteristic.field}
+          key={fieldKey}
+          fieldKey={fieldKey}
+          character={character}
           isEditMode={isEditMode}
-          inputType={characteristic.inputType}
-          suffix={characteristic.suffix}
-          options={characteristic.options}
+          formValue={formValues[fieldKey]}
+          formError={formErrors[fieldKey]?.message}
           onUpdate={onUpdate}
-          validation={characteristic.validation}
         />
       ))}
     </Box>

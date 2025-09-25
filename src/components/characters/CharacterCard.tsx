@@ -5,20 +5,10 @@ import {
   Box,
   CardActionArea,
 } from '@mui/material';
-import {
-  Cake as CakeIcon,
-  Straighten as HeightIcon,
-  Scale as MassIcon,
-  Person as GenderIcon,
-} from '@mui/icons-material';
 import { Character } from '../../types/generated/swapi';
 import { FadeInCard } from '../common/Animations';
-import {
-  formatHeight,
-  formatMass,
-} from '../../utils/characterHelpers';
 import CharacterAvatar from '../common/CharacterAvatar';
-import CharacterCharacteristic from '../common/CharacterCharacteristic';
+import CompactCharacteristics from '../common/CompactCharacteristics';
 import { spacing } from '../../theme/theme';
 import { layouts } from '../../theme/layouts';
 import { componentStyles } from '../../theme/componentStyles';
@@ -81,47 +71,7 @@ const CharacterCard: React.FC<CharacterCardProps> = React.memo(({ character, onC
             </Box>
 
             {/* Characteristics on the right */}
-            <Box 
-              sx={[
-                layouts.flexColumnGap(spacing.component.iconGap),
-                {
-                  flex: 1,
-                  justifyContent: 'flex-start',
-                }
-              ]}
-            >
-              <CharacterCharacteristic
-                icon={<CakeIcon />}
-                label="Birth Year"
-                value={character.birth_year}
-                variant="compact"
-                isEditable={false}
-              />
-              
-              <CharacterCharacteristic
-                icon={<HeightIcon />}
-                label="Height"
-                value={formatHeight(character.height)}
-                variant="compact"
-                isEditable={false}
-              />
-              
-              <CharacterCharacteristic
-                icon={<MassIcon />}
-                label="Mass"
-                value={formatMass(character.mass)}
-                variant="compact"
-                isEditable={false}
-              />
-              
-              <CharacterCharacteristic
-                icon={<GenderIcon />}
-                label="Gender"
-                value={character.gender}
-                variant="compact"
-                isEditable={false}
-              />
-            </Box>
+            <CompactCharacteristics character={character} />
           </Box>
 
           {/* Character Name at bottom */}

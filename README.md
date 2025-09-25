@@ -15,6 +15,7 @@ A modern web application for browsing and exploring Star Wars characters using t
 - **Build Tool**: Vite
 - **Database**: Dexie.js (IndexedDB wrapper)
 - **HTTP Client**: Axios
+- **Form Management**: React Hook Form + Zod validation
 - **Testing**: Vitest + React Testing Library
 
 ## Getting Started

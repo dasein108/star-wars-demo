@@ -3,64 +3,71 @@ import { Box, Typography, Tooltip, TextField, Select, MenuItem, FormControl, Inp
 import { Character } from '../../types/generated/swapi';
 import { spacing } from '../../theme/theme';
 import { layouts } from '../../theme/layouts';
+import { CHARACTER_FIELD_CONFIG, CharacterFieldKey } from '../../config/characterFields';
 
 interface CharacterCharacteristicProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  variant?: 'default' | 'compact';
-  field?: keyof Character;
-  isEditable?: boolean;
+  fieldKey: CharacterFieldKey;
+  character: Character;
+  formValue?: string;
   isEditMode?: boolean;
-  inputType?: 'text' | 'select' | 'number';
-  options?: Array<{value: string, label: string}>;
-  suffix?: string;
   onUpdate?: (field: keyof Character, value: string) => void;
-  validation?: (value: string) => string | null;
+  formError?: string;
+  variant?: 'default' | 'compact';
 }
 
 const CharacterCharacteristic: React.FC<CharacterCharacteristicProps> = ({
-  icon,
-  label,
-  value,
-  variant = 'default',
-  field,
-  isEditable = false,
+  fieldKey,
+  character,
+  formValue,
   isEditMode = false,
-  inputType = 'text',
-  options = [],
-  suffix = '',
   onUpdate,
-  validation,
+  formError,
+  variant = 'default',
 }) => {
+  // Get field configuration
+  const config = CHARACTER_FIELD_CONFIG[fieldKey];
+  
+  const { icon, label, inputType = 'text', options = [], suffix = '', formatter } = config;
+  const isEditable = !!onUpdate;
+  
+  // Get value with auto-formatting
+  const getValue = (): string => {
+    const characterValue = character[fieldKey] || '';
+    
+    if (isEditMode) {
+      return formValue || characterValue;
+    }
+    
+    return formatter ? formatter(characterValue) : characterValue;
+  };
+  
+  const value = getValue();
+  
   const [editValue, setEditValue] = useState(value);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setEditValue(value);
-    setError(null);
-  }, [value, isEditMode]);
+    setError(formError || null);
+  }, [value, isEditMode, formError]);
 
   const handleChange = (newValue: string) => {
     setEditValue(newValue);
-    
-    if (validation) {
-      const validationError = validation(newValue);
-      setError(validationError);
-    }
+    // Validation is handled externally by react-hook-form
+    setError(null);
   };
 
   const handleBlur = () => {
-    if (field && onUpdate && editValue !== value) {
-      onUpdate(field, editValue);
+    if (onUpdate && editValue !== value) {
+      onUpdate(fieldKey, editValue);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (field && onUpdate) {
-        onUpdate(field, editValue);
+      if (onUpdate) {
+        onUpdate(fieldKey, editValue);
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
