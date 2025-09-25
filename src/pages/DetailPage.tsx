@@ -23,7 +23,7 @@ import ErrorBoundary from '../components/common/ErrorBoundary';
 import { Character } from '../types/generated/swapi';
 import { spacing } from '../theme/theme';
 import { characterEditSchema, CharacterEditFormData } from '../utils/characterValidationSchema';
-import { useToast } from '../components/common/Toast';
+import { useToast } from '../hooks/useToast';
 
 const DetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -65,3 +65,4 @@ The application is automatically deployed to GitHub Pages on every push to the `
 ## License
 
 MIT
+
