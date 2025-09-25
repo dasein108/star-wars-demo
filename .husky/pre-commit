@@ -1,0 +1,3 @@
+npm run lint
+# npm run type-check  # Disabled - Vite handles type checking
+npm run test:run

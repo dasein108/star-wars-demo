@@ -1,0 +1,38 @@
+{
+  "root": true,
+  "env": { 
+    "browser": true, 
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "ignorePatterns": ["dist", ".eslintrc.json", "node_modules"],
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint", "react-refresh", "react-hooks"],
+      "rules": {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "react-refresh/only-export-components": [
+          "warn",
+          { "allowConstantExport": true }
+        ]
+      }
+    }
+  ]
+}
